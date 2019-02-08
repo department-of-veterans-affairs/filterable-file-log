@@ -1,3 +1,4 @@
+-- Modified from https://github.com/Kong/kong/blob/0.14.1/kong/plugins/file-log/schema.lua
 local Errors = require "kong.dao.errors"
 local pl_file = require "pl.file"
 local pl_path = require "pl.path"

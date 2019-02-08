@@ -1,3 +1,4 @@
+-- Modified from https://github.com/Kong/kong/blob/0.14.1/kong/plugins/log-serializers/basic.lua
 local tablex = require "pl.tablex"
 local list = require "pl.List"
 
