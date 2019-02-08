@@ -17,13 +17,6 @@ function _M.serialize(ngx, filters)
 
   local request_uri = ngx.var.request_uri or ""
 
-  query_params = ngx.req.get_uri_args()
-  if filters.query_params_blacklist then
-    query_params = blacklist_filter(query_params, filters.query_params_blacklist)
-  elseif filters.query_params_whitelist then
-    query_params = whitelist_filter(query_params, filters.query_params_whitelist)
-  end
-
   req_headers = ngx.req.get_headers()
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
@@ -72,23 +65,23 @@ function _M.serialize(ngx, filters)
   }
 end
 
-local function blacklist_filter(t, blacklist)
+function blacklist_filter(t, blacklist)
   blacklist = list(blacklist):map(string.lower)
   return tablex.pairmap(function(k,v)
     if blacklist:contains(k:lower()) then
-      return "FILTERED"
+      v = "FILTERED"
     end
-    return v
+    return v, k
   end, t)
 end
 
-local function whitelist_filter(t, whitelist)
+function whitelist_filter(t, whitelist)
   whitelist = list(whitelist):map(string.lower)
   return tablex.pairmap(function(k,v)
     if not whitelist:contains(k:lower()) then
-      return "FILTERED"
+      v = "FILTERED"
     end
-    return v
+    return v, k
   end, t)
 end
 

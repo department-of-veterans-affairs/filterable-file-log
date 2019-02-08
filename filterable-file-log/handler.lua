@@ -1,3 +1,4 @@
+-- Modified from https://github.com/Kong/kong/blob/0.14.1/kong/plugins/file-log/handler.lua
 -- Copyright (C) Kong Inc.
 local ffi = require "ffi"
 local cjson = require "cjson"
@@ -73,9 +74,7 @@ function FileLogHandler:log(conf)
     request_headers_whitelist = conf.request_headers_whitelist,
     request_headers_blacklist = conf.request_headers_blacklist,
     response_headers_whitelist = conf.response_headers_whitelist,
-    response_headers_blacklist = conf.response_headers_blacklist,
-    query_params_blacklist = conf.query_params_blacklist,
-    query_params_whitelist = conf.query_params_whitelist,
+    response_headers_blacklist = conf.response_headers_blacklist
   }
   local message = serializer.serialize(ngx, filters)
 
