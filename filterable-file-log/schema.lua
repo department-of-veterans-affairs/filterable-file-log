@@ -1,3 +1,4 @@
+local Errors = require "kong.dao.errors"
 local pl_file = require "pl.file"
 local pl_path = require "pl.path"
 
@@ -24,9 +25,12 @@ return {
     query_params_blacklist = { type = "array" },
     query_params_whitelist = { type = "array" }
   },
-  entity_checks = {
-    { only_one_of = { "request_headers_whitelist", "request_headers_blacklist" } },
-    { only_one_of = { "response_headers_whitelist", "response_headers_blacklist" } },
-    { only_one_of = { "query_params_whitelist", "query_params_blacklist" } }
-  }
+  self_check = function(schema, config, dao, is_updating)
+    for _, field in ipairs({"request_headers", "response_headers", "query_params"})
+      if config[field .. "_whitelist"] and config[field .. "_blacklist"] then
+        return false, Errors.schema "You cannot set both a whitelist and a blacklist for " .. field
+      end
+    end
+    return true
+  end
 }
