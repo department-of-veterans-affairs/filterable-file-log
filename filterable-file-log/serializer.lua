@@ -72,9 +72,9 @@ function _M.serialize(ngx, filters)
 end
 
 local function blacklist_filter(t, blacklist)
-  blacklist = list(blacklist)
+  blacklist = list(blacklist):map(string.lower)
   return tablex.pairmap(function(k,v)
-    if blacklist:contains(k) then
+    if blacklist:contains(k:lower()) then
       return "FILTERED"
     end
     return v
@@ -82,9 +82,9 @@ local function blacklist_filter(t, blacklist)
 end
 
 local function whitelist_filter(t, whitelist)
-  whitelist = list(whitelist)
+  whitelist = list(whitelist):map(string.lower)
   return tablex.pairmap(function(k,v)
-    if not whitelist:contains(k) then
+    if not whitelist:contains(k:lower()) then
       return "FILTERED"
     end
     return v
