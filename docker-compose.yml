@@ -32,6 +32,7 @@ services:
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_PLUGINS: bundled,filterable-file-log
+      KONG_NGINX_USER: root root
     links:
       - db:db
     ports:
