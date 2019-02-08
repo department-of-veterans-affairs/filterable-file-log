@@ -2,7 +2,7 @@
 local ffi = require "ffi"
 local cjson = require "cjson"
 local system_constants = require "lua_system_constants"
-local basic_serializer = require "kong.plugins.log-serializers.basic"
+local serializer = require "kong.plugins.filterable-file-log.serializer"
 local BasePlugin = require "kong.plugins.base_plugin"
 
 local ngx_timer = ngx.timer.at
@@ -64,16 +64,24 @@ FileLogHandler.PRIORITY = 9
 FileLogHandler.VERSION = "0.1.0"
 
 function FileLogHandler:new()
-  FileLogHandler.super.new(self, "file-log")
+  FileLogHandler.super.new(self, "filterable-file-log")
 end
 
 function FileLogHandler:log(conf)
   FileLogHandler.super.log(self)
-  local message = basic_serializer.serialize(ngx)
+  local filters = {
+    request_headers_whitelist = conf.request_headers_whitelist,
+    request_headers_blacklist = conf.request_headers_blacklist,
+    response_headers_whitelist = conf.response_headers_whitelist,
+    response_headers_blacklist = conf.response_headers_blacklist,
+    query_params_blacklist = conf.query_params_blacklist,
+    query_params_whitelist = conf.query_params_whitelist,
+  }
+  local message = serializer.serialize(ngx, filters)
 
   local ok, err = ngx_timer(0, log, conf, message)
   if not ok then
-    ngx.log(ngx.ERR, "[file-log] failed to create timer: ", err)
+    ngx.log(ngx.ERR, "[filterable-file-log] failed to create timer: ", err)
   end
 
 end
