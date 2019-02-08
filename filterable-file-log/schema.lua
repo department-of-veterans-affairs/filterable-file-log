@@ -27,7 +27,7 @@ return {
     query_params_whitelist = { type = "array" }
   },
   self_check = function(schema, config, dao, is_updating)
-    for _, field in ipairs({"request_headers", "response_headers", "query_params"})
+    for _, field in ipairs({"request_headers", "response_headers", "query_params"}) do
       if config[field .. "_whitelist"] and config[field .. "_blacklist"] then
         return false, Errors.schema "You cannot set both a whitelist and a blacklist for " .. field
       end
