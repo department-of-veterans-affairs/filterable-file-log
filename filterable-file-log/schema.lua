@@ -27,7 +27,7 @@ return {
   self_check = function(schema, config, dao, is_updating)
     for _, field in ipairs({"request_headers", "response_headers"}) do
       if config[field .. "_whitelist"] and config[field .. "_blacklist"] then
-        return false
+        return nil, string.format("You cannot set both a whitelist and a blacklist for: %s", field)
       end
     end
     return true
