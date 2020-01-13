@@ -15,7 +15,7 @@ services:
     links:
       - db:db
   kong:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong:1.2.2}"
     depends_on:
       db:
         condition: service_healthy
