@@ -75,13 +75,13 @@ function get_jwt_claims(headers)
     return nil
   end
 
-  token = string.match(headers['authorization'], 'Bearer (.+)')
+  local token = string.match(headers['authorization'], 'Bearer (.+)')
   if not token then
     return nil
   end
 
-  _, encoded_claims, _ = stringx.split(token, '.')
-  claims = ngx.decode_base64(encoded_claims)
+  local _, encoded_claims, _ = stringx.split(token, '.')
+  local claims = ngx.decode_base64(encoded_claims)
   return cjson.decode(claims)
 end
 
