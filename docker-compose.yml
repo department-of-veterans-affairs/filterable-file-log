@@ -2,7 +2,7 @@ version: '2.1'
 services:
   kong-migrations:
     image: "${KONG_DOCKER_TAG:-kong:1.2.2}"
-    command: kong migrations up
+    command: kong migrations bootstrap
     depends_on:
       db:
         condition: service_healthy
