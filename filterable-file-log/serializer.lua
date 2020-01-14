@@ -2,7 +2,7 @@
 local tablex = require "pl.tablex"
 local list = require "pl.List"
 local stringx = require "pl.stringx"
-local cjson = require "cjson"
+local cjson = require "cjson.safe"
 
 local _M = {}
 
@@ -80,7 +80,11 @@ function get_jwt_claims(headers)
     return nil
   end
 
-  local _, encoded_claims, _ = stringx.split(token, '.')
+  local encoded_claims = stringx.split(token, '.')[2]
+  if not encoded_claims then
+    return nil
+  end
+
   local claims = ngx.decode_base64(encoded_claims)
   return cjson.decode(claims)
 end
