@@ -75,19 +75,19 @@ function get_jwt_claims(headers)
     return nil
   end
 
-  local token = string.match(headers['authorization'], 'Bearer (.+)')
-  if not token then
-    return nil
-  end
-
-  -- The JWT has three .-delimited parts: header, payload, and signature
-  -- The payload has the claims we're interested in
-  local encoded_claims = stringx.split(token, '.')[2]
+  -- The JWT consists of 2-3 period-delimited, base64 encoded sections (signature is optional):
+  --   header.payload.[signature]
+  -- The claims we're interested in are in the payload, so we capture the second base64 encoded string
+  local encoded_claims = string.match(headers['authorization'], 'Bearer [%w/+]+=?=?%.([%w/+]+=?=?)%.')
   if not encoded_claims then
     return nil
   end
 
   local claims = ngx.decode_base64(encoded_claims)
+  if not claims then
+    return nil
+  end
+
   local parsed_claims, err = cjson.decode(claims)
   if err then
     return nil
