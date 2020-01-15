@@ -25,14 +25,14 @@ function _M.serialize(ngx, filters)
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
   elseif filters.request_headers_whitelist then
-    req_headers = whitelist_filter(req_headers, filters.request_headers_whitelist)
+    req_headers = whitelist_filter(req_headers, filters.request_headers_whitelist, "FILTERED")
   end
 
   resp_headers = ngx.resp.get_headers()
   if filters.response_headers_blacklist then
     resp_headers = blacklist_filter(resp_headers, filters.response_headers_blacklist)
   elseif filters.response_headers_whitelist then
-    resp_headers = whitelist_filter(resp_headers, filters.response_headers_whitelist)
+    resp_headers = whitelist_filter(resp_headers, filters.response_headers_whitelist, "FILTERED")
   end
 
   return {
@@ -80,13 +80,28 @@ function get_jwt_claims(headers)
     return nil
   end
 
+  -- The JWT has three .-delimited parts: header, payload, and signature
+  -- The payload has the claims we're interested in
   local encoded_claims = stringx.split(token, '.')[2]
   if not encoded_claims then
     return nil
   end
 
   local claims = ngx.decode_base64(encoded_claims)
-  return cjson.decode(claims)
+  local parsed_claims, err = cjson.decode(claims)
+  if err then
+    return nil
+  end
+
+  -- only log a subset of claims to avoid logging PII/PHI
+  return whitelist_filter(parsed_claims, {
+    'cid',
+    'exp',
+    'iat',
+    'iss',
+    'jti',
+    'scp'
+  })
 end
 
 function blacklist_filter(t, blacklist)
@@ -99,11 +114,11 @@ function blacklist_filter(t, blacklist)
   end, t)
 end
 
-function whitelist_filter(t, whitelist)
+function whitelist_filter(t, whitelist, replacement)
   whitelist = list(whitelist):map(string.lower)
   return tablex.pairmap(function(k,v)
     if not whitelist:contains(k:lower()) then
-      v = "FILTERED"
+      v = replacement
     end
     return v, k
   end, t)
