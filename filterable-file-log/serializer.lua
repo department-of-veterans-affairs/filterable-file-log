@@ -25,14 +25,14 @@ function _M.serialize(ngx, filters)
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
   elseif filters.request_headers_whitelist then
-    req_headers = whitelist_filter(req_headers, filters.request_headers_whitelist, "FILTERED")
+    req_headers = whitelist_filter(req_headers, filters.request_headers_whitelist)
   end
 
   resp_headers = ngx.resp.get_headers()
   if filters.response_headers_blacklist then
     resp_headers = blacklist_filter(resp_headers, filters.response_headers_blacklist)
   elseif filters.response_headers_whitelist then
-    resp_headers = whitelist_filter(resp_headers, filters.response_headers_whitelist, "FILTERED")
+    resp_headers = whitelist_filter(resp_headers, filters.response_headers_whitelist)
   end
 
   return {
@@ -114,11 +114,11 @@ function blacklist_filter(t, blacklist)
   end, t)
 end
 
-function whitelist_filter(t, whitelist, replacement)
+function whitelist_filter(t, whitelist)
   whitelist = list(whitelist):map(string.lower)
   return tablex.pairmap(function(k,v)
     if not whitelist:contains(k:lower()) then
-      v = replacement
+      v = "FILTERED"
     end
     return v, k
   end, t)
