@@ -1,5 +1,10 @@
 # Filterable File Log
-A fork of the official [Kong file log plugin](https://github.com/Kong/kong/tree/0.14.1/kong/plugins/file-log) that supports filtering fields from the log. Supports Kong 0.14.1
+A fork of the official [Kong file log plugin](https://github.com/Kong/kong/tree/0.14.1/kong/plugins/file-log) that supports filtering fields from the log.
+
+This plugin also logs a subset of claims from a JWT that is presented in an `Authorization: Bearer` header. This behavior is not configurable, and the claims logged are hardcoded.
+
+## Compatibility
+This plugin is forked from Kong 0.14.1, but supports Kong 1.x.
 
 ## Local Development
 

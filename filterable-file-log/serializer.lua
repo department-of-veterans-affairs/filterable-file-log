@@ -1,6 +1,8 @@
 -- Modified from https://github.com/Kong/kong/blob/0.14.1/kong/plugins/log-serializers/basic.lua
 local tablex = require "pl.tablex"
 local list = require "pl.List"
+local stringx = require "pl.stringx"
+local cjson = require "cjson.safe"
 
 local _M = {}
 
@@ -17,7 +19,9 @@ function _M.serialize(ngx, filters)
 
   local request_uri = ngx.var.request_uri or ""
 
-  req_headers = ngx.req.get_headers()
+  local req_headers = ngx.req.get_headers()
+  local jwt_claims = get_jwt_claims(req_headers)
+
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
   elseif filters.request_headers_whitelist then
@@ -60,9 +64,44 @@ function _M.serialize(ngx, filters)
     service = ngx.ctx.service,
     api = ngx.ctx.api,
     consumer = ngx.ctx.authenticated_consumer,
+    jwt_claims = jwt_claims,
     client_ip = ngx.var.remote_addr,
     started_at = ngx.req.start_time() * 1000
   }
+end
+
+function get_jwt_claims(headers)
+  if not headers['authorization'] then
+    return nil
+  end
+
+  -- The JWT consists of 2-3 period-delimited, base64 encoded sections (signature is optional):
+  --   header.payload.[signature]
+  -- The claims we're interested in are in the payload, so we capture the second base64 encoded string
+  local encoded_claims = string.match(headers['authorization'], 'Bearer [%w/+]+=?=?%.([%w/+]+=?=?)%.')
+  if not encoded_claims then
+    return nil
+  end
+
+  local claims = ngx.decode_base64(encoded_claims)
+  if not claims then
+    return nil
+  end
+
+  local parsed_claims, err = cjson.decode(claims)
+  if err then
+    return nil
+  end
+
+  -- only log a subset of claims to avoid logging PII/PHI
+  return whitelist_filter(parsed_claims, {
+    'cid',
+    'exp',
+    'iat',
+    'iss',
+    'jti',
+    'scp'
+  })
 end
 
 function blacklist_filter(t, blacklist)

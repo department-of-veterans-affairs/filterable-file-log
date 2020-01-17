@@ -1,8 +1,8 @@
 version: '2.1'
 services:
   kong-migrations:
-    image: "${KONG_DOCKER_TAG:-kong:0.14.1}"
-    command: kong migrations up
+    image: "${KONG_DOCKER_TAG:-kong:1.2.2}"
+    command: kong migrations bootstrap
     depends_on:
       db:
         condition: service_healthy
@@ -15,7 +15,7 @@ services:
     links:
       - db:db
   kong:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong:1.2.2}"
     depends_on:
       db:
         condition: service_healthy
@@ -58,7 +58,7 @@ services:
     stdin_open: true
     tty: true
   konga:
-    image: pantsel/konga:legacy
+    image: pantsel/konga
     environment:
       NODE_ENV: production
       TOKEN_SECRET: "${KONGA_SECRET:-secret}"
