@@ -22,6 +22,8 @@ function _M.serialize(ngx, filters)
   local req_headers = ngx.req.get_headers()
   local jwt_claims = get_jwt_claims(req_headers)
 
+  local error_message = cjson.decode(ngx.var.resp_body).message
+
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
   elseif filters.request_headers_whitelist then
@@ -59,6 +61,7 @@ function _M.serialize(ngx, filters)
       proxy = ngx.ctx.KONG_WAITING_TIME or -1,
       request = ngx.var.request_time * 1000
     },
+    err_message = error_message,
     authenticated_entity = authenticated_entity,
     route = ngx.ctx.route,
     service = ngx.ctx.service,
