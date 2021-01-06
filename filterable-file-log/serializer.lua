@@ -21,6 +21,14 @@ function _M.serialize(ngx, filters)
 
   local req_headers = ngx.req.get_headers()
   local jwt_claims = get_jwt_claims(req_headers)
+  
+  local error_message
+  if type(cjson.decode(ngx.var.resp_body)) ~= "nil" then
+    local og_message = cjson.decode(ngx.var.resp_body).message
+    if og_message then
+      error_message = convert_error_message(og_message)
+    end
+  end
 
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
@@ -59,6 +67,7 @@ function _M.serialize(ngx, filters)
       proxy = ngx.ctx.KONG_WAITING_TIME or -1,
       request = ngx.var.request_time * 1000
     },
+    err_message = error_message,
     authenticated_entity = authenticated_entity,
     route = ngx.ctx.route,
     service = ngx.ctx.service,
@@ -122,6 +131,22 @@ function whitelist_filter(t, whitelist)
     end
     return v, k
   end, t)
+end
+
+function convert_error_message(msg)
+  local e
+  if string.find(msg, "No API key") then
+    e = "No Key"
+  elseif string.find(msg, "Invalid authentication") then
+    e = "Invalid Key"
+  elseif string.find(msg, "IP address is not allowed") then
+    e = "IP Blocked"
+  elseif string.find(msg, "no Route") then
+    e = "Invalid Route"
+  else
+    e = ""
+  end
+  return e
 end
 
 return _M
