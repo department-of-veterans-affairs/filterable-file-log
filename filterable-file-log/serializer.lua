@@ -9,6 +9,7 @@ local _M = {}
 local EMPTY = tablex.readonly({})
 
 function _M.serialize(ngx, filters)
+  print("filters: ", filters)
   local authenticated_entity
   if ngx.ctx.authenticated_credential ~= nil then
     authenticated_entity = {
@@ -18,21 +19,29 @@ function _M.serialize(ngx, filters)
   end
 
   local request_uri = ngx.var.request_uri or ""
+  print('request_uri: ' .. request_uri)
 
   local req_headers = ngx.req.get_headers()
+  print('req_headers: ' .. cjson.encode(req_headers))
   local jwt_claims = get_jwt_claims(req_headers)
+  print('jwt_claims: ' .. cjson.encode(jwt_claims))
 
   if filters.request_headers_blacklist then
     req_headers = blacklist_filter(req_headers, filters.request_headers_blacklist)
+    print('req_headers after blacklist: ' .. cjson.encode(req_headers))
   elseif filters.request_headers_whitelist then
     req_headers = whitelist_filter(req_headers, filters.request_headers_whitelist)
+    print('req_headers after whitelist: ' .. cjson.encode(req_headers))
   end
 
   resp_headers = ngx.resp.get_headers()
+  print('resp_headers: ' .. cjson.encode(resp_headers))
   if filters.response_headers_blacklist then
     resp_headers = blacklist_filter(resp_headers, filters.response_headers_blacklist)
+    print('resp_headers after blacklist: ' .. cjson.encode(resp_headers))
   elseif filters.response_headers_whitelist then
     resp_headers = whitelist_filter(resp_headers, filters.response_headers_whitelist)
+    print('resp_headers after whitelist: ' .. cjson.encode(resp_headers))
   end
 
   return {
